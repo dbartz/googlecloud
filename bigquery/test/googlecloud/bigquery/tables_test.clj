@@ -2,7 +2,7 @@
   (:require [googlecloud.bigquery.tables :refer :all]
             [clojure.test :refer [deftest testing is are]]))
 
-(def unpartitioned-table
+(def unpartitioned-unclustered-table
   {:table-reference {:table-id   "table-id" 
                      :project-id "project-id"
                      :dataset-id "dataset-id"}
@@ -10,14 +10,18 @@
    :schema          [{:name "event"       :type :string}
                      {:name "timestamp"       :type :timestamp :mode :nullable}]})
 
-(def ingestion-partitioned-table (assoc unpartitioned-table :time-partitioning {:type "DAY"}))
+(def ingestion-partitioned-table (assoc unpartitioned-unclustered-table :time-partitioning {:type "DAY"}))
 
-(def field-partitioned-table (assoc unpartitioned-table :time-partitioning {:type "DAY" :field "timestamp"}))
+(def field-partitioned-table (assoc unpartitioned-unclustered-table :time-partitioning {:type "DAY" :field "timestamp"}))
 
-(deftest test-unpartitioned-table
-  (let [bq-table (#'googlecloud.bigquery.tables/mk-table unpartitioned-table)
-        time-partitioning (. bq-table getTimePartitioning)]
-    (is (= nil time-partitioning))))
+(def clustered-table (assoc unpartitioned-unclustered-table :clustering {:fields ["EventType", "otherField"]}))
+
+(deftest test-unpartitioned-unclustered-table
+  (let [bq-table (#'googlecloud.bigquery.tables/mk-table unpartitioned-unclustered-table)
+        time-partitioning (. bq-table getTimePartitioning)
+        clustering (. bq-table getClustering)]
+    (is (= nil time-partitioning))
+    (is (= nil clustering))))
 
 (deftest test-ingestion-partitioned-table
   (let [bq-table (#'googlecloud.bigquery.tables/mk-table ingestion-partitioned-table)
@@ -31,3 +35,7 @@
     (is (= "DAY" (. time-partitioning getType)))
     (is (= "timestamp" (. time-partitioning getField)))))
 
+(deftest test-clustered-table
+  (let [bq-table (#'googlecloud.bigquery.tables/mk-table clustered-table)
+        clustering (. bq-table getClustering)]
+    (is (= ["EventType" "otherField"] (. clustering getFields)))))
