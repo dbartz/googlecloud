@@ -2,7 +2,7 @@
   (:require [googlecloud.core :as gc]
             [googlecloud.bigquery.coerce]
             [schema.core :as s])
-  (:import  [com.google.api.services.bigquery.model TableReference TableFieldSchema TableSchema Table TimePartitioning]))
+  (:import  [com.google.api.services.bigquery.model TableReference TableFieldSchema TableSchema Table TimePartitioning Clustering]))
 
 (defn list [service project-id dataset-id]
   (letfn [(mk-list-op
@@ -33,17 +33,19 @@
                          (s/optional-key :mode)        (s/enum :nullable :required :repeated)
                          (s/optional-key :fields)      [(s/recursive #'table-field-schema)]})
 
-(def time-partitioning-schema {
-  :type                         s/Str
-  (s/optional-key :field)       s/Str})
-  
+(def time-partitioning-schema {:type                         s/Str
+                               (s/optional-key :field)       s/Str})
+
+(def clustering-schema {(s/optional-key :fields)       [s/Str]})
+
 (def table-schema
   "BigQuery Table schema"
   {:table-reference                     table-reference-schema
    (s/optional-key :description)        (s/maybe s/Str)
    (s/optional-key :friendly-name)      (s/maybe s/Str)
    (s/optional-key :schema)             [table-field-schema]
-   (s/optional-key :time-partitioning)  (s/maybe time-partitioning-schema)})
+   (s/optional-key :time-partitioning)  (s/maybe time-partitioning-schema)
+   (s/optional-key :clustering)         (s/maybe clustering-schema)})
 
 (def field-type {:string "STRING"
                  :integer "INTEGER"
@@ -79,15 +81,21 @@
     (.setField (:field time-partitioning)))
     nil))
 
+(defn- mk-clustering [clustering]
+  (if clustering
+    (doto (Clustering.)
+      (.setFields (:fields clustering)))
+    nil))
 
-(defn- mk-table [{:keys [table-reference description schema friendly-name time-partitioning] :or {time-partitioning nil} :as table} ]
+(defn- mk-table [{:keys [table-reference description schema friendly-name time-partitioning clustering] :or {time-partitioning nil clustering nil} :as table} ]
   {:pre [(s/validate table-schema table)]}
-  (doto (Table. )
+  (doto (Table.)
     (.setTableReference   (mk-table-reference table-reference))
     (.setDescription      description)
     (.setFriendlyName     friendly-name)
     (.setSchema           (mk-schema schema))
-    (.setTimePartitioning (mk-partition time-partitioning))))
+    (.setTimePartitioning (mk-partition time-partitioning))
+    (.setClustering       (mk-clustering clustering))))
 
 (defn insert [service {:keys [table-reference] :as table}]
   (let [op (-> service
