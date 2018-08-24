@@ -33,8 +33,9 @@
                          (s/optional-key :mode)        (s/enum :nullable :required :repeated)
                          (s/optional-key :fields)      [(s/recursive #'table-field-schema)]})
 
-(def time-partitioning-schema {:type                         s/Str
-                               (s/optional-key :field)       s/Str})
+(def time-partitioning-schema {:type                                      s/Str
+                               (s/optional-key :field)                    s/Str
+                               (s/optional-key :require-partition-filter)  s/Bool})
 
 (def clustering-schema {(s/optional-key :fields)       [s/Str]})
 
@@ -78,7 +79,8 @@
   (if time-partitioning 
   (doto (TimePartitioning. ) 
     (.setType (:type time-partitioning))
-    (.setField (:field time-partitioning)))
+    (.setField (:field time-partitioning))
+    (.setRequirePartitionFilter (:require-partition-filter time-partitioning)))
     nil))
 
 (defn- mk-clustering [clustering]

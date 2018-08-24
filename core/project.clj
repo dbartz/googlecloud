@@ -1,6 +1,6 @@
-(defproject googlecloud/core "0.3.6"
+(defproject googleclojd/core "0.4.0"
   :description "Google Cloud support library"
-  :url "https://github.com/pingles/googlecloud"
+  :url "https://github.com/dbartz/googlecloud"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :scm {:dir ".."}

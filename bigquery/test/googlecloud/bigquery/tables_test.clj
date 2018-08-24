@@ -14,6 +14,8 @@
 
 (def field-partitioned-table (assoc unpartitioned-unclustered-table :time-partitioning {:type "DAY" :field "timestamp"}))
 
+(def required-field-partitioned-table (assoc unpartitioned-unclustered-table :time-partitioning {:type "DAY" :field "timestamp" :require-partition-filter true}))
+
 (def clustered-table (assoc unpartitioned-unclustered-table :clustering {:fields ["EventType", "otherField"]}))
 
 (deftest test-unpartitioned-unclustered-table
@@ -34,6 +36,13 @@
         time-partitioning (. bq-table getTimePartitioning)]
     (is (= "DAY" (. time-partitioning getType)))
     (is (= "timestamp" (. time-partitioning getField)))))
+
+(deftest test-required-field-partitioned-table
+  (let [bq-table (#'googlecloud.bigquery.tables/mk-table required-field-partitioned-table)
+        time-partitioning (. bq-table getTimePartitioning)]
+    (is (= "DAY" (. time-partitioning getType)))
+    (is (= "timestamp" (. time-partitioning getField)))
+    (is (= true (. time-partitioning isRequirePartitionFilter)))))
 
 (deftest test-clustered-table
   (let [bq-table (#'googlecloud.bigquery.tables/mk-table clustered-table)
