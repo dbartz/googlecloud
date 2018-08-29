@@ -8,7 +8,7 @@
              :insert BigqueryScopes/BIGQUERY_INSERTDATA})
 
 (defn service [credentials & {:keys [application]
-                              :or   {application "https://github.com/pingles/googlecloud"}}]
+                              :or   {application "https://github.com/dbartz/googlecloud"}}]
   (let [transport    (GoogleNetHttpTransport/newTrustedTransport)
         json-factory (JacksonFactory. )]
     (.build (doto (Bigquery$Builder. transport json-factory credentials)
