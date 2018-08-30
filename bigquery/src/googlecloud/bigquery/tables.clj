@@ -14,7 +14,6 @@
 (defn get [service project-id dataset-id table-id]
   (-> service (.tables) (.get project-id dataset-id table-id) (.execute) (gc/to-clojure)))
 
-
 (def table-reference-schema
   "A reference for a table in a dataset"
   {:table-id s/Str
@@ -108,3 +107,9 @@
 (defn delete [service project-id dataset-id table-id]
   (let [delete-op (-> service (.tables) (.delete project-id dataset-id table-id))]
     (.execute delete-op)))
+
+(defn update [service project-id dataset-id table-id table]
+  (-> service (.tables) (.update project-id dataset-id table-id (mk-table table)) (.execute) (gc/to-clojure)))
+
+(defn patch [service project-id dataset-id table-id table]
+  (-> service (.tables) (.patch project-id dataset-id table-id (mk-table table)) (.execute) (gc/to-clojure)))

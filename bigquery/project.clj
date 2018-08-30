@@ -1,4 +1,4 @@
-(defproject googleclojd/bigquery "0.4.0"
+(defproject googleclojd/bigquery "0.4.1"
   :description "BigQuery"
   :url "https://github.com/dbartz/googlecloud"
   :license {:name "Eclipse Public License"
